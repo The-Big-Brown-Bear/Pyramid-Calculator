@@ -1,0 +1,238 @@
+     1                                  ; From x86-64 Assembly Language Programming with Ubuntu
+     2                                  ; By Prof. Ed Jorgensen
+     3                                  ; Section: 8.3 Addressing Modes
+     4                                  
+     5                                  ; Benjamin Boden
+     6                                  ; UVU ID: 10760739
+     7                                  ; 10/11/12022
+     8                                  ; Lab 10, part B
+     9                                  
+    10                                  ; ******************************************************
+    11                                  
+    12                                  ; Program calculates simple geometric
+    13                                  ; information for each square pyramid in
+    14                                  ; a series of square pyramids.
+    15                                  
+    16                                  ; Calculates the total surface area and
+    17                                  ; Volume of eac square pyramid.
+    18                                  
+    19                                  ; Once the values are computed, the program finds
+    20                                  ; the minimum, maximum, sum, and average for the 
+    21                                  ; total surface areas and volumes.
+    22                                  
+    23                                  ; Formulas for (n) triangle:
+    24                                  ; -> total_Surface_Areas(n) = aSides(n) *
+    25                                  ;					(2*aSides(n)*sSides(n)
+    26                                  ;
+    27                                  ; -> volume(n) = (aSides(n)^2 *heights(n)) / 3
+    28                                  ; *******************************************
+    29                                  
+    30                                  ; Data Declaration
+    31                                  section .data
+    32                                  
+    33                                  EXIT_SUCCESS	equ	0
+    34                                  SYS_EXIT	equ	60
+    35                                  ;ddTwo		equ	2
+    36                                  ;ddThree		equ	3
+    37                                  
+    38                                  
+    39                                  ; Provide the data
+    40                                  ; 50 diffrent Peramids
+    41                                  ; 5x10 grids:
+    42 00000000 0A0E0D2536              aSides	db 10, 14, 13, 37, 54
+    43 00000005 1F0D143D24              		db 31, 13, 20, 61, 36
+    44 0000000A 0E352C132A              		db 14, 53, 44, 19, 42
+    45 0000000F 1B29353E0A              		db 27, 41, 53, 62, 10
+    46 00000014 13120E0A0F              		db 19, 18, 14, 10, 15
+    47 00000019 0F0B162146              		db 15, 11, 22, 33, 70
+    48 0000001E 0F170F3F1A              		db 15, 23, 15, 63, 26
+    49 00000023 18210A3D0F              		db 24, 33, 10, 61, 15
+    50 00000028 0E220D4751              		db 14, 34, 13, 71, 81
+    51 0000002D 260D1D115D              		db 38, 13, 29, 17, 93
+    52                                  		
+    53 00000032 D1045A04ED066B048B-     sSides	dw 1233, 1114, 1773, 1131, 1675
+    53 0000003B 06                 
+    54 0000003C 8C04B507B607630484-     		dw 1164, 1973, 1974, 1123, 1156
+    54 00000045 04                 
+    55 00000046 4005D806B5077604B0-     		dw 1344, 1752, 1973, 1142, 1456
+    55 0000004F 05                 
+    56 00000050 8D04DA06F90497040A-     		dw 1165, 1754, 1273, 1175, 1546
+    56 00000059 06                 
+    57 0000005A 81048906AD051F06FF-     		dw 1153, 1673, 1453, 1567, 1535
+    57 00000063 05                 
+    58 00000064 78042B06E4061F0636-     		dw 1144, 1579, 1764, 1567, 1334
+    58 0000006D 05                 
+    59 0000006E B0051B061C06D9068D-     		dw 1456, 1563, 1564, 1753, 1165
+    59 00000077 04                 
+    60 00000078 6E064607B1058F04FE-     		dw 1646, 1862, 1457, 1167, 1534
+    60 00000081 05                 
+    61 00000082 4B074807DD06DB06AD-     		dw 1867, 1864, 1757, 1755, 1453
+    61 0000008B 05                 
+    62 0000008C 47078906FB04DC0649-     		dw 1863, 1673, 1275, 1756, 1353
+    62 00000095 05                 
+    63                                  
+    64 00000096 413700007E2B000013-     heights	dd 14145, 11134, 15123, 15123, 14123
+    64 0000009F 3B0000133B00002B37-
+    64 000000A8 0000               
+    65 000000AA 164800005E3C00007C-     		dd 18454, 15454, 12156, 12164, 12542
+    65 000000B3 2F0000842F0000FE30-
+    65 000000BC 0000               
+    66 000000BE 1548000015480000B0-     		dd 18453, 18453, 11184, 15142, 12354
+    66 000000C7 2B0000263B00004230-
+    66 000000D0 0000               
+    67 000000D2 E4380000363700007C-     		dd 14564, 14134, 12156, 12344, 13142
+    67 000000DB 2F0000383000005633-
+    67 000000E4 0000               
+    68 000000E6 912B00006F48000004-     		dd 11153, 18543, 17156, 12352, 15434
+    68 000000EF 430000403000004A3C-
+    68 000000F8 0000               
+    69 000000FA 17480000363700005B-     		dd 18455, 14134, 12123, 15324, 13453
+    69 00000103 2F0000DC3B00008D34-
+    69 0000010C 0000               
+    70 0000010E 7E2B00003637000034-     		dd 11134, 14134, 15156, 15234, 17142
+    70 00000117 3B0000823B0000F642-
+    70 00000120 0000               
+    71 00000122 6F4C00003637000066-     		dd 19567, 14134, 12134, 17546, 16123
+    71 0000012B 2F00008A440000FB3E-
+    71 00000134 0000               
+    72 00000136 7E2B000036370000F0-     		dd 11134, 14134, 14576, 15457, 17142
+    72 0000013F 380000613C0000F642-
+    72 00000148 0000               
+    73 0000014A 61330000912B000098-     		dd 13153, 11153, 12184, 14142, 17134
+    73 00000153 2F00003E370000EE42-
+    73 0000015C 0000               
+    74                                  
+    75                                  ; Needed numbers		
+    76 0000015E 32000000                length	dd 50 ; Array length
+    77 00000162 02000000                ddTwo	dd 2
+    78 00000166 03000000                ddThree	dd 3
+    79                                  
+    80                                  ; Total Area values
+    81 0000016A 00000000                taMin	dd 0
+    82 0000016E 00000000                taMax	dd 0
+    83 00000172 00000000                taSum	dd 0
+    84 00000176 00000000                taAve	dd 0
+    85                                  
+    86                                  ; Volume values
+    87 0000017A 00000000                volMin	dd 0
+    88 0000017E 00000000                volMax	dd 0
+    89 00000182 00000000                volSum	dd 0
+    90 00000186 00000000                volAve	dd 0
+    91                                  
+    92                                  ; 
+    93                                  
+    94                                  ; UNINITIALIZED DATA:
+    95                                  section	.bss
+    96                                  
+    97 00000000 <res C8h>               totalAreas	resd	50			; Peramid Ereas
+    98 000000C8 <res C8h>               volumes		resd	50			; Peramid Volumes
+    99                                  
+   100                                  ;*********************************************************
+   101                                  
+   102                                  ; PROGRAM LOGIC:
+   103                                  section .text
+   104                                  global _start
+   105                                  
+   106                                  
+   107                                  
+   108                                  _start:	
+   109                                  	; __init__
+   110 00000000 8B0C25[5E010000]        	mov	ecx, dword [length]		; Loop counter based on peramids left
+   111 00000007 BE00000000              	mov	rsi, 0					; index of Perimid
+   112                                  
+   113                                  
+   114                                  
+   115                                  ; Find the Surface area and volume of a given peramid
+   116                                  ; repeat for every peramid
+   117                                  calculationLoop:
+   118                                  	; Surface area of peramid:
+   119                                  	; total_Surface_Areas(n) = 2 * aSides(n) * aSides(n) * sSides(n)
+   120 0000000C 440FB686[00000000]      	movzx	r8d, byte [aSides+rsi]
+   121 00000014 440FB78C36-             	movzx	r9d, word [sSides+rsi*2]
+   121 00000019 [32000000]         
+   122 0000001D 4489C0                  	mov	eax, r8d
+   123                                  	
+   124 00000020 F72425[62010000]        	mul	dword [ddTwo]	; eax = eax * 2
+   125 00000027 41F7E0                  	mul	r8d		; eax = eax * aSides(rsi)
+   126 0000002A 41F7E1                  	mul	r9d		; eax = eax * sSides(rsi)
+   127                                  	
+   128 0000002D 8904B5[00000000]        	mov	dword [totalAreas+rsi*4], eax ; push answer to memory as array
+   129                                  	
+   130                                  	; Volume of Peramid:
+   131                                  	; volume(n) = (aSides(n)^2 *heights(n)) / 3
+   132 00000034 0FB686[00000000]        	movzx	eax, byte [aSides+rsi]
+   133 0000003B F7E0                    	mul	eax		; eax = aSides^2
+   134 0000003D F724B5[96000000]        	mul	dWord [heights+rsi*4]
+   135 00000044 F73425[66010000]        	div	dword [ddThree]		; eax = eax/3
+   136                                  	
+   137 0000004B 8904B5[C8000000]        	mov	dword [volumes+rsi*4], eax  ; push back to memory
+   138                                  	
+   139 00000052 48FFC6                  	inc	rsi
+   140 00000055 E2B5                    	loop	calculationLoop		; repeat untill rcx is 0
+   141                                  	
+   142                                  
+   143                                  
+   144                                  ; Find Min, Max, Sum, and average of for the areas
+   145                                  ; and volumes.
+   146                                  SetValues:
+   147 00000057 BE00000000              	mov	rsi, 0	
+   148 0000005C 8B04B5[00000000]        	mov	eax, dword [totalAreas+rsi*4]
+   149 00000063 890425[6A010000]        	mov	dword [taMin], eax
+   150 0000006A 890425[6E010000]        	mov	dword [taMax], eax
+   151                                  	
+   152 00000071 8B04B5[C8000000]        	mov	eax, dword [volumes+rsi*4]
+   153 00000078 890425[7A010000]        	mov	dword [volMin], eax
+   154 0000007F 890425[7E010000]        	mov	dword [volMax], eax
+   155                                  	
+   156 00000086 C70425[72010000]00-     	mov	dword [taSum], 0
+   156 0000008E 000000             
+   157 00000091 C70425[82010000]00-     	mov	dword [volSum], 0
+   157 00000099 000000             
+   158                                  
+   159 0000009C 8B0C25[5E010000]        	mov	ecx, dword [length]
+   160                                  	
+   161                                  statsLoop:
+   162 000000A3 8B04B5[00000000]        	mov	eax, dword [totalAreas+rsi*4]
+   163 000000AA 010425[72010000]        	add	dword [taSum], eax
+   164 000000B1 3B0425[6A010000]        	cmp	eax, dword [taMin]
+   165 000000B8 7307                    	jae	notNewTaMin
+   166 000000BA 890425[6A010000]        	mov	dword [taMin], eax
+   167                                  
+   168                                  notNewTaMin:
+   169 000000C1 3B0425[6E010000]        	cmp	eax, dword [taMax]	; if eax >= taMax
+   170 000000C8 7607                    	jbe	notNewTaMax		; jump to 
+   171 000000CA 890425[6E010000]        	mov	dword [taMax], eax	; else	
+   172                                  
+   173                                  notNewTaMax:
+   174 000000D1 8B04B5[C8000000]        	mov	eax, dword [volumes+rsi*4]
+   175 000000D8 010425[82010000]        	add	dword [volSum], eax
+   176 000000DF 3B0425[7A010000]        	cmp	eax, dword [volMin]
+   177 000000E6 7307                    	jae	notNewVolMin
+   178 000000E8 890425[7A010000]        	mov	dword [volMin], eax
+   179                                  
+   180                                  notNewVolMin:
+   181 000000EF 3B0425[7E010000]        	cmp	eax, dword [volMax]
+   182 000000F6 7607                    	jbe	notNewVolMax
+   183 000000F8 890425[7E010000]        	mov	dword [volMax], eax
+   184                                  
+   185                                  notNewVolMax:
+   186 000000FF 48FFC6                  	inc	rsi
+   187 00000102 E29F                    	loop	statsLoop
+   188                                  
+   189                                  
+   190                                  ; Calculate averages.
+   191 00000104 8B0425[72010000]        mov	eax, dword [taSum]
+   192 0000010B BA00000000              mov	edx, 0
+   193 00000110 F73425[5E010000]        div	dword [length]
+   194 00000117 890425[76010000]        mov	dword [taAve], eax
+   195                                  
+   196 0000011E 8B0425[82010000]        mov	eax, dword [volSum]
+   197 00000125 BA00000000              mov	edx, 0
+   198 0000012A F73425[5E010000]        div	dword [length]
+   199 00000131 890425[86010000]        mov	dword [volAve], eax
+   200                                  
+   201                                  ; end programm
+   202                                  last:
+   203 00000138 B83C000000              	mov rax, SYS_EXIT
+   204 0000013D BF00000000              	mov rdi, EXIT_SUCCESS
+   205 00000142 0F05                    	syscall

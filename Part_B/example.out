@@ -1,0 +1,20 @@
+
+Breakpoint 1, last () at Part_B/Triangle.asm:203
+203		mov rax, SYS_EXIT
+---------------------------------------
+display variables
+
+0x40216a <taMin>:	246600
+0x40216e <taMax>:	23404194
+0x402172 <taSum>:	209652090
+0x402176 <taAve>:	4193041
+Volume Values0x40217a <volMin>:	404466
+0x40217e <volMax>:	49397322
+0x402182 <volSum>:	355288952
+0x402186 <volAve>:	7105779
+
+Breakpoint 1, last () at Part_B/Triangle.asm:203
+203		mov rax, SYS_EXIT
+
+
+rdi            0x0                 0
